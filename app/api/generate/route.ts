@@ -33,6 +33,8 @@ function rewriteFacts(text: string) {
 
 export async function POST(req: Request) {
   try {
+    console.log("API_GENERATE_HIT");
+
     const body = await req.json();
 
     const docTypeMap: Record<string, string> = {
@@ -85,7 +87,7 @@ export async function POST(req: Request) {
     const story = rewriteStory(body.story || "");
     const facts = rewriteFacts(body.facts || "");
 
- const result = `${subject}
+    const result = `${subject}
 
 לכבוד
 ${recipient}
@@ -106,13 +108,22 @@ ${email ? `ליצירת קשר: ${email}\n` : ""}בכבוד רב,
 
 ${fullName}`;
 
-console.log("DOCUMENT_CREATED", {
-  recipient: recipient,
-  goal: goal,
-  docType: docType,
-  time: new Date().toISOString(),
-});
+    console.log("DOCUMENT_CREATED", {
+      recipient,
+      goal,
+      docType,
+      time: new Date().toISOString(),
+    });
 
-return NextResponse.json({
-  full: result,
-});
+    return NextResponse.json({
+      full: result,
+    });
+  } catch (error) {
+    console.error("GENERATE_ERROR", error);
+
+    return NextResponse.json(
+      { error: "שגיאה ביצירת המסמך" },
+      { status: 500 }
+    );
+  }
+}
