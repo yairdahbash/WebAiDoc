@@ -116,3 +116,8 @@ ${fullName}`;
     );
   }
 }
+console.log("DOCUMENT_CREATED", {
+  recipient: body.recipient,
+  goal: body.goal,
+  time: new Date().toISOString()
+});
