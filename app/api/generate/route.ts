@@ -85,7 +85,7 @@ export async function POST(req: Request) {
     const story = rewriteStory(body.story || "");
     const facts = rewriteFacts(body.facts || "");
 
-    const result = `${subject}
+ const result = `${subject}
 
 לכבוד
 ${recipient}
@@ -106,18 +106,13 @@ ${email ? `ליצירת קשר: ${email}\n` : ""}בכבוד רב,
 
 ${fullName}`;
 
-    return NextResponse.json({
-      full: result,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: "שגיאה ביצירת המסמך" },
-      { status: 500 }
-    );
-  }
-}
 console.log("DOCUMENT_CREATED", {
-  recipient: body.recipient,
-  goal: body.goal,
-  time: new Date().toISOString()
+  recipient: recipient,
+  goal: goal,
+  docType: docType,
+  time: new Date().toISOString(),
+});
+
+return NextResponse.json({
+  full: result,
 });
