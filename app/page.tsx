@@ -80,7 +80,18 @@ export default function NusahGov() {
 
   const upd = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const canGen = form.docType && form.recipient && form.goal && form.story;
-
+async function track(event: string, data: Record<string, any> = {}) {
+  try {
+    await fetch(`/api/track/${event}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+      keepalive: true,
+    });
+  } catch {}
+}
   async function generate() {
     const used = Number(localStorage.getItem("used") || "0");
 
