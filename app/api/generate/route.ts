@@ -33,8 +33,6 @@ function rewriteFacts(text: string) {
 
 export async function POST(req: Request) {
   try {
-    console.log("API_GENERATE_HIT");
-
     const body = await req.json();
 
     const docTypeMap: Record<string, string> = {

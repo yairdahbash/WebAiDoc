@@ -80,22 +80,25 @@ export default function NusahGov() {
 
   const upd = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const canGen = form.docType && form.recipient && form.goal && form.story;
-async function track(event: string, data: Record<string, any> = {}) {
-  try {
-    await fetch(`/api/track/${event}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-      keepalive: true,
-    });
-  } catch {}
-}
+
+  async function track(event: string, data: Record<string, any> = {}) {
+    try {
+      await fetch(`/api/track/${event}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        keepalive: true,
+      });
+    } catch {}
+  }
+
   async function generate() {
     const used = Number(localStorage.getItem("used") || "0");
 
     if (used >= 5) {
+      await track("limit-hit", { used });
       setStep("limit");
       return;
     }
@@ -126,13 +129,17 @@ async function track(event: string, data: Record<string, any> = {}) {
       localStorage.setItem("used", String(nextUsed));
       setUsedCount(nextUsed);
 
-      console.log("USER_GENERATED_DOCUMENT", {
+      await track("document-created", {
         recipient: form.recipient,
+        goal: form.goal,
         docType: form.docType,
         used: nextUsed,
       });
     } catch (e: any) {
       setOutput(e.message || "אירעה שגיאה. נסה שוב.");
+      await track("document-error", {
+        message: e?.message || "unknown",
+      });
     }
 
     setLoading(false);
@@ -157,6 +164,12 @@ async function track(event: string, data: Record<string, any> = {}) {
 
     setOutput(refined);
     setLoading(false);
+
+    track("refine-click", {
+      mode,
+      docType: form.docType,
+      recipient: form.recipient,
+    });
   }
 
   const goTo = (s: string) => {
@@ -167,12 +180,16 @@ async function track(event: string, data: Record<string, any> = {}) {
 
   function resetForNewDocument() {
     setOutput("");
+    track("new-document-click", {
+      docType: form.docType,
+    });
     goTo("form");
   }
 
   function resetTrial() {
     localStorage.setItem("used", "0");
     setUsedCount(0);
+    track("trial-reset", {});
     goTo("form");
   }
 
@@ -181,16 +198,31 @@ async function track(event: string, data: Record<string, any> = {}) {
       await navigator.clipboard.writeText(output);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+
+      await track("copy-text", {
+        docType: form.docType,
+        recipient: form.recipient,
+      });
     } catch {}
   }
 
   function sendByEmail() {
+    track("send-email", {
+      docType: form.docType,
+      recipient: form.recipient,
+    });
+
     const subject = encodeURIComponent("מסמך מוכן מתוך נוסח");
     const body = encodeURIComponent(output);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   }
 
   function exportToPDF() {
+    track("export-pdf", {
+      docType: form.docType,
+      recipient: form.recipient,
+    });
+
     window.print();
   }
 
@@ -612,7 +644,7 @@ async function track(event: string, data: Record<string, any> = {}) {
                   onClick={exportToPDF}
                   style={{ padding: "11px", fontSize: "13px", fontWeight: "600", background: "#fff", color: "#1e3a6e", border: "1.5px solid #2a7ae2", borderRadius: "10px", cursor: "pointer" }}
                 >
-                  שמור / ייצא ל-PDF
+                  הדפס / שמור כ-PDF
                 </button>
 
                 <button
